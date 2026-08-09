@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Patent-Expiration Opportunity Tracker</title>
+<style>
+:root{--bg:#0b1020;--panel:#121a2c;--panel2:#19233a;--text:#eef3ff;--muted:#9fb0cf;--accent:#62d4a8;--warn:#ffcc66;--danger:#ff7a8a;--line:#27324b}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:linear-gradient(180deg,#08101f,#0e1424);color:var(--text)}
+header{padding:28px 22px 18px;max-width:1500px;margin:auto}
+h1{margin:0;font-size:clamp(26px,4vw,44px)}.sub{color:var(--muted);max-width:1000px;line-height:1.5}
+.wrap{max-width:1500px;margin:auto;padding:0 22px 50px}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0 18px}
+.card,.panel{background:rgba(18,26,44,.94);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 35px rgba(0,0,0,.16)}
+.card{padding:16px}.big{font-size:30px;font-weight:800}.label{color:var(--muted);font-size:13px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0}
+input,select,button,textarea{background:#0d1527;color:var(--text);border:1px solid #33405e;border-radius:10px;padding:10px 12px;font:inherit}
+button{cursor:pointer;font-weight:700}button.primary{background:var(--accent);color:#062318;border:none}.ghost{background:transparent}
+.panel{overflow:hidden}.tablewrap{overflow:auto;max-height:65vh}table{width:100%;border-collapse:collapse;min-width:1250px}
+th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:13px}th{position:sticky;top:0;background:#151e32;z-index:2;color:#cdd8ed}
+tr:hover td{background:#151d31}.score{font-weight:900;font-size:18px}.high{color:var(--accent)}.mid{color:var(--warn)}.low{color:var(--danger)}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#22304a;color:#d7e3f7;font-size:12px}.star{font-size:20px;background:none;border:none;padding:0}.muted{color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1.4fr .6fr;gap:14px;margin-top:14px}.box{padding:16px}.source a{color:#8ecbff}
+.modalbackdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;align-items:center;justify-content:center;padding:20px}.modalbackdrop.open{display:flex}.modalcard{width:min(720px,94vw);max-height:90vh;overflow:auto;border-radius:18px;background:#121a2c;color:var(--text);padding:0;border:1px solid var(--line);box-shadow:0 20px 70px rgba(0,0,0,.45)}.modal{padding:20px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.formgrid label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}.wide{grid-column:1/-1}
+footer{color:var(--muted);padding:24px 0;line-height:1.5;font-size:13px}
+@media(max-width:900px){.cards{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}.formgrid{grid-template-columns:1fr}.wide{grid-column:auto}}
+</style>
+</head>
+<body>
+<header>
+<h1>Patent-Expiration Opportunity Tracker</h1>
+<p class="sub">A research dashboard for spotting generic and biosimilar opportunities before loss of exclusivity. This is a screening tool—not legal, regulatory, or investment advice. Patent expiration is not the same thing as a legally launchable generic date.</p>
+</header>
+<div class="wrap">
+<section class="cards">
+<div class="card"><div class="label">Tracked opportunities</div><div id="count" class="big">0</div></div>
+<div class="card"><div class="label">Watchlist</div><div id="watchCount" class="big">0</div></div>
+<div class="card"><div class="label">Cliffs ≤ 24 months</div><div id="soonCount" class="big">0</div></div>
+<div class="card"><div class="label">Average opportunity score</div><div id="avgScore" class="big">0</div></div>
+</section>
+
+<div class="toolbar">
+<input id="search" placeholder="Search drug, generic, company…" />
+<select id="typeFilter"><option value="">All types</option><option>Small molecule</option><option>Biologic</option></select>
+<select id="watchFilter"><option value="">All entries</option><option value="watch">Watchlist only</option></select>
+<select id="sort"><option value="score">Sort: opportunity score</option><option value="loe">Sort: nearest cliff</option><option value="drug">Sort: drug A–Z</option></select>
+<button class="primary" id="addBtn">+ Add opportunity</button>
+<button id="exportBtn">Export JSON</button>
+<button id="resetBtn" class="ghost">Reset seed data</button>
+</div>
+
+<div class="panel tablewrap">
+<table>
+<thead><tr>
+<th>Watch</th><th>Drug</th><th>Type</th><th>LOE / signal date</th><th>Opportunity score</th><th>Competitors</th><th>Manufacturing<br/>difficulty</th><th>Litigation<br/>risk</th><th>FDA exclusivity<br/>risk</th><th>Small-company<br/>access</th><th>Status</th><th>Notes</th>
+</tr></thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+
+<div class="grid2">
+<div class="panel box">
+<h3>How the score works</h3>
+<p class="muted">The score is a transparent screening score from 0–100. It rewards low competitor count and high small-company accessibility, while penalizing manufacturing difficulty, litigation risk, and FDA-exclusivity risk. Nearer cliffs receive a timing boost. Adjust the inputs as your research improves.</p>
+<div id="formula" class="badge">Competition 30% · Access 25% · Manufacturing 15% · Litigation 12% · FDA exclusivity 8% · Timing 10%</div>
+</div>
+<div class="panel box source">
+<h3>Core research sources</h3>
+<p><a target="_blank" href="https://www.fda.gov/drugs/drug-approvals-and-databases/orange-book-data-files">FDA Orange Book data files</a></p>
+<p><a target="_blank" href="https://purplebooksearch.fda.gov/">FDA Purple Book</a></p>
+<p><a target="_blank" href="https://www.fda.gov/drugs/drug-and-biologic-approval-and-ind-activity-reports/first-generic-drug-approvals">FDA First Generic Approvals</a></p>
+<p><a target="_blank" href="https://open.fda.gov/data/orangebook/">openFDA Orange Book</a></p>
+</div>
+</div>
+
+<footer>
+<strong>Daily workflow:</strong> open the tracker, check the watchlist, verify any patent/exclusivity changes in FDA sources, update litigation/competitor counts, then investigate the public companies connected to the highest-scoring opportunities. Data you edit is stored locally in your browser using localStorage.
+</footer>
+</div>
+
+<div id="dlg" class="modalbackdrop" aria-hidden="true"><div class="modalcard"><form class="modal" id="form">
+<h2>Add / edit opportunity</h2>
+<div class="formgrid">
+<label>Brand drug<input name="drug" required></label>
+<label>Generic / molecule<input name="generic"></label>
+<label>Type<select name="type"><option>Small molecule</option><option>Biologic</option></select></label>
+<label>Manufacturer<input name="manufacturer"></label>
+<label>LOE / signal date<input name="loe" type="date"></label>
+<label>Existing / expected competitors<input name="competitors" type="number" min="0" value="3"></label>
+<label>Manufacturing difficulty (1 easy–10 hard)<input name="manufacturing" type="number" min="1" max="10" value="5"></label>
+<label>Patent litigation risk (1–10)<input name="litigation" type="number" min="1" max="10" value="5"></label>
+<label>FDA exclusivity risk (1–10)<input name="fda_exclusivity" type="number" min="1" max="10" value="5"></label>
+<label>Small-company access (1 hard–10 easy)<input name="small_company" type="number" min="1" max="10" value="5"></label>
+<label>Status<input name="status" value="Research queue"></label>
+<label class="wide">Notes<textarea name="notes" rows="4"></textarea></label>
+</div>
+<div class="toolbar"><button value="cancel">Cancel</button><button class="primary" value="default" id="saveBtn">Save</button></div>
+</form></div></div>
+
+<script>
+const SEED = [{"drug": "Eliquis", "generic": "apixaban", "type": "Small molecule", "manufacturer": "Bristol Myers Squibb / Pfizer", "loe": "2027-05-21", "latest_patent": "2031-08-24", "annual_sales_b": "\u2014", "competitors": 4, "manufacturing": 2, "dosage": "Oral tablet", "litigation": 4, "fda_exclusivity": 3, "small_company": 6, "status": "Near-term cliff", "watch": true, "notes": "Earliest tracked patent expiry in 2027; later portfolio protection extends beyond that. Verify launch-blocking patents and settlements before acting.", "source": "FDA Orange Book / public patent-cliff research"}, {"drug": "Entresto", "generic": "sacubitril/valsartan", "type": "Small molecule", "manufacturer": "Novartis", "loe": "2027-05-08", "latest_patent": "2036-05-09", "annual_sales_b": "\u2014", "competitors": 3, "manufacturing": 3, "dosage": "Oral tablet", "litigation": 5, "fda_exclusivity": 3, "small_company": 5, "status": "Near-term cliff", "watch": true, "notes": "Earliest tracked patent expiry in 2027, but later patents may affect launch timing.", "source": "FDA Orange Book / public patent-cliff research"}, {"drug": "Keytruda", "generic": "pembrolizumab", "type": "Biologic", "manufacturer": "Merck", "loe": "2028-01-01", "latest_patent": "2028-12-31", "annual_sales_b": "33.5*", "competitors": 5, "manufacturing": 9, "dosage": "IV biologic", "litigation": 6, "fda_exclusivity": 5, "small_company": 2, "status": "Major biosimilar cliff", "watch": true, "notes": "Reuters reports key patent protection beginning to expire in 2028. Q2 2026 sales were $8.37B; annualized figure shown is illustrative, not company guidance.", "source": "Reuters / FDA Purple Book"}, {"drug": "Xifaxan", "generic": "rifaximin", "type": "Small molecule", "manufacturer": "Bausch / Salix", "loe": "2026-03-19", "latest_patent": "\u2014", "annual_sales_b": "\u2014", "competitors": 1, "manufacturing": 4, "dosage": "Oral tablet", "litigation": 6, "fda_exclusivity": 2, "small_company": 6, "status": "First generic approved", "watch": true, "notes": "FDA listed Actavis Laboratories FL as a 2026 first-generic approval for rifaximin tablets on Mar. 19, 2026.", "source": "FDA First Generic Approvals 2026"}, {"drug": "Auryxia", "generic": "ferric citrate", "type": "Small molecule", "manufacturer": "Akebia", "loe": "2026-03-11", "latest_patent": "\u2014", "annual_sales_b": "\u2014", "competitors": 1, "manufacturing": 4, "dosage": "Oral tablet", "litigation": 3, "fda_exclusivity": 2, "small_company": 7, "status": "First generic approved", "watch": false, "notes": "FDA listed Teva as a 2026 first-generic approval for ferric citrate tablets on Mar. 11, 2026.", "source": "FDA First Generic Approvals 2026"}, {"drug": "Jardiance", "generic": "empagliflozin", "type": "Small molecule", "manufacturer": "Boehringer Ingelheim / Lilly", "loe": "2027-01-01", "latest_patent": "\u2014", "annual_sales_b": "\u2014", "competitors": 5, "manufacturing": 3, "dosage": "Oral tablet", "litigation": 5, "fda_exclusivity": 3, "small_company": 6, "status": "Research queue", "watch": false, "notes": "Included as a research candidate; exact launch-relevant dates should be validated against the current Orange Book.", "source": "FDA Orange Book research queue"}, {"drug": "Lynparza", "generic": "olaparib", "type": "Small molecule", "manufacturer": "AstraZeneca / Merck", "loe": "2027-01-01", "latest_patent": "\u2014", "annual_sales_b": "\u2014", "competitors": 3, "manufacturing": 4, "dosage": "Oral tablet", "litigation": 5, "fda_exclusivity": 3, "small_company": 5, "status": "Research queue", "watch": false, "notes": "Included as a research candidate; validate exact patent and exclusivity dates.", "source": "FDA Orange Book research queue"}, {"drug": "Ibrance", "generic": "palbociclib", "type": "Small molecule", "manufacturer": "Pfizer", "loe": "2027-01-01", "latest_patent": "\u2014", "annual_sales_b": "\u2014", "competitors": 4, "manufacturing": 4, "dosage": "Oral tablet/capsule", "litigation": 5, "fda_exclusivity": 3, "small_company": 5, "status": "Research queue", "watch": false, "notes": "Included as a research candidate; validate exact patent and exclusivity dates.", "source": "FDA Orange Book research queue"}];
+let items = JSON.parse(localStorage.getItem('patentTrackerData') || 'null') || SEED;
+const save=()=>localStorage.setItem('patentTrackerData',JSON.stringify(items));
+function monthsUntil(d){
+ if(!d) return 999;
+ const x=new Date(d+"T00:00:00"), n=new Date();
+ return (x-n)/(1000*60*60*24*30.4375);
+}
+function score(x){
+ const comp = Math.max(0, 10-Math.min(10,Number(x.competitors||0)));
+ const access = Number(x.small_company||5);
+ const manuf = 11-Number(x.manufacturing||5);
+ const lit = 11-Number(x.litigation||5);
+ const excl = 11-Number(x.fda_exclusivity||5);
+ const m=monthsUntil(x.loe);
+ const timing = m<=0 ? 7 : m<=12?10:m<=24?9:m<=36?8:m<=60?6:4;
+ return Math.round((comp*.30+access*.25+manuf*.15+lit*.12+excl*.08+timing*.10)*10);
+}
+function cls(s){return s>=70?'high':s>=50?'mid':'low'}
+function render(){
+ let q=document.getElementById('search').value.toLowerCase();
+ let type=document.getElementById('typeFilter').value;
+ let wf=document.getElementById('watchFilter').value;
+ let sort=document.getElementById('sort').value;
+ let arr=items.filter(x=>(!q||[x.drug,x.generic,x.manufacturer,x.notes].join(' ').toLowerCase().includes(q))&&(!type||x.type===type)&&(!wf||x.watch));
+ arr.sort((a,b)=>sort==='loe'?String(a.loe).localeCompare(String(b.loe)):sort==='drug'?a.drug.localeCompare(b.drug):score(b)-score(a));
+ document.getElementById('tbody').innerHTML=arr.map((x,i)=>{
+  const idx=items.indexOf(x), s=score(x);
+  return `<tr>
+  <td><button class="star" onclick="toggleWatch(${idx})">${x.watch?'★':'☆'}</button></td>
+  <td><strong>${esc(x.drug)}</strong><br><span class="muted">${esc(x.generic||'')}</span><br><span class="muted">${esc(x.manufacturer||'')}</span></td>
+  <td><span class="badge">${esc(x.type)}</span></td>
+  <td>${esc(x.loe||'—')}<br><span class="muted">${monthsUntil(x.loe)<999?Math.max(0,Math.round(monthsUntil(x.loe)))+' mo':'—'}</span></td>
+  <td><span class="score ${cls(s)}">${s}</span>/100</td>
+  <td>${x.competitors??'—'}</td><td>${x.manufacturing}/10</td><td>${x.litigation}/10</td><td>${x.fda_exclusivity}/10</td><td>${x.small_company}/10</td>
+  <td>${esc(x.status||'')}</td>
+  <td>${esc(x.notes||'')}<br><span class="muted">Source: ${esc(x.source||'user research')}</span></td></tr>`
+ }).join('');
+ document.getElementById('count').textContent=items.length;
+ document.getElementById('watchCount').textContent=items.filter(x=>x.watch).length;
+ document.getElementById('soonCount').textContent=items.filter(x=>monthsUntil(x.loe)>=0&&monthsUntil(x.loe)<=24).length;
+ document.getElementById('avgScore').textContent=Math.round(items.reduce((a,x)=>a+score(x),0)/Math.max(1,items.length));
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+window.toggleWatch=i=>{items[i].watch=!items[i].watch;save();render()}
+['search','typeFilter','watchFilter','sort'].forEach(id=>document.getElementById(id).addEventListener(id==='search'?'input':'change',render));
+const dlg=document.getElementById('dlg'), form=document.getElementById('form');
+function openModal(){dlg.classList.add('open');dlg.setAttribute('aria-hidden','false');}
+function closeModal(){dlg.classList.remove('open');dlg.setAttribute('aria-hidden','true');}
+document.getElementById('addBtn').onclick=openModal;
+dlg.addEventListener('click',e=>{if(e.target===dlg)closeModal()});
+form.querySelector('button[value="cancel"]').onclick=e=>{e.preventDefault();closeModal();};
+document.getElementById('saveBtn').onclick=e=>{
+ e.preventDefault(); const fd=new FormData(form), o=Object.fromEntries(fd.entries());
+ if(!o.drug || !o.drug.trim()){alert('Please enter a brand drug name.');return;}
+ ['competitors','manufacturing','litigation','fda_exclusivity','small_company'].forEach(k=>o[k]=Number(o[k]));
+ o.watch=false;o.source='user research';items.push(o);
+ try{save();}catch(err){console.warn('Local save unavailable in this preview',err);}
+ form.reset();closeModal();render();
+};
+document.getElementById('exportBtn').onclick=()=>{
+ const blob=new Blob([JSON.stringify(items,null,2)],{type:'application/json'});const a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download='patent-opportunity-tracker.json';a.click();URL.revokeObjectURL(a.href);
+};
+document.getElementById('resetBtn').onclick=()=>{if(confirm('Reset to the original seed data?')){items=structuredClone(SEED);save();render()}};
+render();
+</script>
+</body></html>
