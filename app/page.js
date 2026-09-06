@@ -194,6 +194,34 @@ export default function Home() {
       </>}
 
       {detail && <div className="overlay" onMouseDown={() => setDetail(null)}><article className="modal" onMouseDown={e => e.stopPropagation()}><button className="close" onClick={() => setDetail(null)}>×</button><div className="eyebrow">{detail.change_signal || "OPPORTUNITY DETAIL"}</div><h2>{detail.drug} / {detail.generic_name}</h2><p><strong>{detail.manufacturer}</strong> · {detail.ticker || "No ticker mapped"}</p><div className="detailgrid"><div><b>{detail.competitor_count}</b><span>Competitors</span></div><div><b>{detail.replication_difficulty}/10</b><span>Replication difficulty</span></div><div><b>{detail.complexity_moat}</b><span>Complexity moat</span></div><div><b>{detail.beneficiary_impact}</b><span>Beneficiary impact</span></div><div><b>{detail.opportunity_score}</b><span>Opportunity score</span></div><div><b>{fmtB(detail.remaining_revenue_b)}</b><span>Remaining revenue</span></div></div><h3>FDA / legal status</h3><p>{detail.fda_status || "Research needed."}</p><h3>Patent / exclusivity notes</h3><p>{detail.patent_notes || "Research needed."}</p><h3>Complexity evidence</h3><p>{detail.complexity_evidence || "Research needed."}</p><h3>Likely beneficiaries</h3><p>{detail.likely_beneficiaries || "Research needed."}</p><h3>Financial impact</h3><p>{detail.financial_impact || "Research needed."}</p></article></div>}
+<section className="panel pad">
+<div className="eyebrow">SAFETY → MARKET SHARE RADAR</div>
+
+<h2>
+When the FDA changes the risk profile of a blockbuster medicine,
+who gains market share afterward?
+</h2>
+
+<p>
+Drug Cliff Radar tracks major FDA safety actions and follows what
+happens next: prescribing changes, competing therapies, manufacturer
+sales, and market-share shifts.
+</p>
+
+<div className="evidence">
+<div>✓ FDA action — Verified</div>
+<div>✓ Affected drug &amp; manufacturer — Verified</div>
+<div>✓ Competing therapies — Verified</div>
+<div>◷ Prescribing impact — Tracking</div>
+<div>◷ Market-share winners — Tracking</div>
+<div>◷ Revenue impact — Unknown until evidence emerges</div>
+</div>
+
+<p className="note">
+We separate confirmed regulatory events from estimates, forecasts,
+and commercial outcomes that have not yet been demonstrated.
+</p>
+</section>
 
       <footer>Research screening only; not legal, regulatory, medical, or investment advice. Verify patents, exclusivities, settlements, litigation, launch rights, prescribing information, and safety evidence before decisions.</footer>
     </main>
