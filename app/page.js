@@ -195,6 +195,75 @@ export default function Home() {
 
       {detail && <div className="overlay" onMouseDown={() => setDetail(null)}><article className="modal" onMouseDown={e => e.stopPropagation()}><button className="close" onClick={() => setDetail(null)}>×</button><div className="eyebrow">{detail.change_signal || "OPPORTUNITY DETAIL"}</div><h2>{detail.drug} / {detail.generic_name}</h2><p><strong>{detail.manufacturer}</strong> · {detail.ticker || "No ticker mapped"}</p><div className="detailgrid"><div><b>{detail.competitor_count}</b><span>Competitors</span></div><div><b>{detail.replication_difficulty}/10</b><span>Replication difficulty</span></div><div><b>{detail.complexity_moat}</b><span>Complexity moat</span></div><div><b>{detail.beneficiary_impact}</b><span>Beneficiary impact</span></div><div><b>{detail.opportunity_score}</b><span>Opportunity score</span></div><div><b>{fmtB(detail.remaining_revenue_b)}</b><span>Remaining revenue</span></div></div><h3>FDA / legal status</h3><p>{detail.fda_status || "Research needed."}</p><h3>Patent / exclusivity notes</h3><p>{detail.patent_notes || "Research needed."}</p><h3>Complexity evidence</h3><p>{detail.complexity_evidence || "Research needed."}</p><h3>Likely beneficiaries</h3><p>{detail.likely_beneficiaries || "Research needed."}</p><h3>Financial impact</h3><p>{detail.financial_impact || "Research needed."}</p></article></div>}
 <section className="panel pad">
+  <div className="eyebrow">GENERIC / BIOSIMILAR LAUNCH RADAR</div>
+
+  <h2>Who takes the business after the patent cliff?</h2>
+
+  <div style={{ overflowX: "auto" }}>
+    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <thead>
+        <tr>
+          <th>Generic / Biosimilar</th>
+          <th>Ticker</th>
+          <th>Exact Launch Date</th>
+          <th>Brand Challenged</th>
+          <th>FDA Approval</th>
+          <th>Launch Status</th>
+          <th>Post-Launch Generic Sales</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr>
+          <td>Mylan / Viatris ferric carboxymaltose</td>
+          <td>VTRS</td>
+          <td>July 1, 2026</td>
+          <td>Injectafer</td>
+          <td>June 25, 2026</td>
+          <td>🟢 ACTUALLY LAUNCHED</td>
+          <td>Not separately disclosed yet</td>
+        </tr>
+
+        <tr>
+          <td>MSN cabozantinib</td>
+          <td>Private / N/A</td>
+          <td>Jan 15, 2030 earliest currently indicated</td>
+          <td>CABOMETYX</td>
+          <td>TBD</td>
+          <td>🟡 FUTURE / LITIGATION</td>
+          <td>—</td>
+        </tr>
+
+        <tr>
+          <td>Qilu / Cipla QL2107</td>
+          <td>CIPLA (NSE)</td>
+          <td>TBD</td>
+          <td>Keytruda</td>
+          <td>Not yet FDA approved</td>
+          <td>🟡 DEVELOPMENT</td>
+          <td>—</td>
+        </tr>
+
+        <tr>
+          <td>Teva cabozantinib</td>
+          <td>TEVA</td>
+          <td>Jan 1, 2031 permitted under license</td>
+          <td>CABOMETYX</td>
+          <td>TBD</td>
+          <td>🟡 FUTURE</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p className="note">
+    Drug Cliff Radar separates FDA approval, lawful launch rights,
+    actual commercial launch, and publicly reported post-launch sales.
+  </p>
+</section>
+              
+              <section className="panel pad">
 <div className="eyebrow">SAFETY → MARKET SHARE RADAR</div>
 
 <h2>
