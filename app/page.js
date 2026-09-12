@@ -20,7 +20,47 @@ function clip(text, max = 900) {
 }
 
 const QUICK_MEDS = ["sertraline", "fluoxetine", "quetiapine", "lorazepam", "zolpidem", "buspirone"];
+const GENERIC_RADAR = {
+  keytruda: {
+    generic: "Qilu / Cipla QL2107",
+    ticker: "CIPLA (NSE)",
+    brand: "Keytruda",
+    launch: "TBD",
+    approval: "Not yet FDA approved",
+    status: "🟡 DEVELOPMENT",
+    sales: "—",
+  },
+  injectafer: {
+    generic: "Mylan / Viatris ferric carboxymaltose",
+    ticker: "VTRS",
+    brand: "Injectafer",
+    launch: "July 1, 2026",
+    approval: "June 25, 2026",
+    status: "🟢 ACTUALLY LAUNCHED",
+    sales: "Not separately disclosed yet",
+  },
+  cabometyx: {
+    generic: "MSN cabozantinib",
+    ticker: "Private / N/A",
+    brand: "CABOMETYX",
+    launch: "Jan 15, 2030 earliest indicated",
+    approval: "TBD",
+    status: "🟡 FUTURE / LITIGATION",
+    sales: "—",
+  },
+};
 
+function genericRadarFor(drug) {
+  return GENERIC_RADAR[String(drug || "").toLowerCase()] || {
+    generic: "TBD",
+    ticker: "TBD",
+    brand: drug,
+    launch: "TBD",
+    approval: "TBD",
+    status: "Tracking",
+    sales: "Not separately disclosed",
+  };
+}
 export default function Home() {
   const [tab, setTab] = useState("competition");
   const [rows, setRows] = useState([]);
@@ -130,7 +170,13 @@ export default function Home() {
 
         <section className="syncbar"><span>Last database sync: <strong>{meta.lastSync ? new Date(meta.lastSync).toLocaleString() : "Not synced yet"}</strong></span><span>Automatic schedule: <strong>daily</strong></span></section>
 
-        <section className="panel tablewrap"><div className="table"><div className="thead"><span>Drug</span><span>Ticker</span><span>Stage</span><span>Competitors</span><span>Brand sales</span><span>Remaining revenue</span><span>Replication</span><span>Complexity moat</span><span>Beneficiary impact</span><span>Opportunity score</span><span>FDA signal</span><span>Change</span></div>{loading ? <div className="loading">Loading database…</div> : shown.map(x => <button className="tr" key={x.id} onClick={() => setDetail(x)}><span><strong>{x.drug}</strong><small>{x.generic_name}<br/>{x.manufacturer}</small></span><span className="ticker">{x.ticker || "—"}</span><span><em className={`stage ${stageClass(x.competition_stage)}`}>{x.competition_stage}</em></span><span><strong>{x.competitor_count}</strong><small>ANDA/BLA field estimate</small></span><span><strong>{fmtB(x.annual_sales_b)}</strong></span><span><strong>{fmtB(x.remaining_revenue_b)}</strong></span><span><strong>{x.replication_difficulty}/10</strong></span><span className="moat">{x.complexity_moat}</span><span className="benefit">{x.beneficiary_impact}</span><span className="score">{x.opportunity_score}</span><span><small>{x.fda_status || "Research"}</small></span><span><small className="change">{x.change_signal || "—"}</small></span></button>)}</div></section>
+        <section className="panel tablewrap"><div className="table"><div className="thead"><span>Generic / Biosimilar</span><span>Ticker</span><span>Brand Name</span><span>Launch Date</span><span>FDA Approval</span><span>Launch Status</span><span>Post-Launch Sales</span><span>Remaining revenue</span><span>Replication</span><span>Complexity moat</span><span>Beneficiary impact</span><span>Opportunity score</span><span>FDA signal</span><span>Change</span></div>{loading ? <div className="loading">Loading database…</div> : shown.map(x => trong>{x.drug<button className="tr" key={x.id} onClick={() => setDetail(x)}><span>{genericRadarFor(x.drug).generic}</span>
+<span className="ticker">{genericRadarFor(x.drug).ticker}</span>
+<span>{genericRadarFor(x.drug).brand}</span>
+<span>{genericRadarFor(x.drug).launch}</span>
+<span>{genericRadarFor(x.drug).approval}</span>
+<span>{genericRadarFor(x.drug).status}</span>
+<span>{genericRadarFor(x.drug).sales}</span></button>)}</div></section>
 
         <section className="two"><article className="panel pad"><div className="eyebrow">MOMENTA-PATTERN DETECTOR</div><h2>What makes the Radar scream</h2><p>High revenue + high replication difficulty + low competitor count + lawful launch approaching + one identifiable beneficiary + opportunity large relative to that company.</p><div className="logic"><span>Replication Difficulty</span><span>Complexity Moat</span><span>Beneficiary Impact</span><span>Competition Stage</span></div></article><article className="panel pad"><div className="eyebrow">AUTOMATION STATUS</div><h2>Version 2 data engine</h2><p>Small-molecule opportunities can automatically query openFDA Drugs@FDA records each day. Biologics remain flagged for Purple Book/manual research until the Purple Book adapter is added.</p><p className="fine">Important: an ANDA count or FDA approval does not by itself establish a lawful commercial launch date.</p></article></section>
       </> : <>
