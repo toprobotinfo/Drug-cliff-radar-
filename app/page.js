@@ -170,7 +170,7 @@ export default function Home() {
 
         <section className="syncbar"><span>Last database sync: <strong>{meta.lastSync ? new Date(meta.lastSync).toLocaleString() : "Not synced yet"}</strong></span><span>Automatic schedule: <strong>daily</strong></span></section>
 
-        <section className="panel tablewrap"><div className="table"><div className="thead"><span>Generic / Biosimilar</span><span>Ticker</span><span>Brand Name</span><span>Launch Date</span><span>FDA Approval</span><span>Launch Status</span><span>Post-Launch Sales</span><span>Remaining revenue</span><span>Replication</span><span>Complexity moat</span><span>Beneficiary impact</span><span>Opportunity score</span><span>FDA signal</span><span>Change</span></div>{loading ? <div className="loading">Loading database…</div> : shown.map(x => trong>{x.drug<button className="tr" key={x.id} onClick={() => setDetail(x)}><span>{genericRadarFor(x.drug).generic}</span>
+        <section className="panel tablewrap"><div className="table"><div className="thead"><span>Generic / Biosimilar</span><span>Ticker</span><span>Brand Name</span><span>Launch Date</span><span>FDA Approval</span><span>Launch Status</span><span>Post-Launch Sales</span><span>Remaining revenue</span><span>Replication</span><span>Complexity moat</span><span>Beneficiary impact</span><span>Opportunity score</span><span>FDA signal</span><span>Change</span></div>{loading ? <div className="loading">Loading database…</div> : shown.map(x => <button className="tr" key={x.id} onClick={() => setDetail(x)}><span>{genericRadarFor(x.drug).generic}</span>
 <span className="ticker">{genericRadarFor(x.drug).ticker}</span>
 <span>{genericRadarFor(x.drug).brand}</span>
 <span>{genericRadarFor(x.drug).launch}</span>
